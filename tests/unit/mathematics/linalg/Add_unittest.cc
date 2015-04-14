@@ -103,6 +103,55 @@ TEST(AddVector, native_backend)
 	}
 }
 
+TEST(AddMatrix, default_backend_inplace)
+{
+	const float64_t alpha=0.3;
+	const float64_t beta=-1.5;
+	const index_t rows=3;
+	const index_t cols=2;
+
+	SGMatrix<float64_t> A(rows, cols);
+	SGMatrix<float64_t> B(rows, cols);
+
+	std::iota(A.matrix, A.matrix+rows*cols, 1);
+	std::transform(A.matrix, A.matrix+rows*cols, B.matrix,
+			[](float64_t& val) { return 0.5*val; });
+
+	SGMatrix<float64_t> B_copy(rows, cols);
+	std::copy(B.matrix, B.matrix+rows*cols, B_copy.matrix);
+
+	SGMatrix<float64_t> E=linalg::add(A, B, alpha, beta, true);
+
+	EXPECT_EQ(E.matrix, B.matrix);
+
+	for (int32_t i=0; i<rows*cols; i++)
+		EXPECT_NEAR(alpha*A[i]+beta*B_copy[i], B[i], 1e-15);
+}
+
+TEST(AddVector, default_backend_inplace)
+{
+	const float64_t alpha=0.3;
+	const float64_t beta=-1.5;
+	const index_t len=5;
+
+	SGVector<float64_t> A(len);
+	SGVector<float64_t> B(len);
+
+	std::iota(A.vector, A.vector+A.vlen, 1);
+	std::transform(A.vector, A.vector+A.vlen, B.vector,
+			[](float64_t& val) { return 0.5*val; });
+
+	SGVector<float64_t> B_copy(B.vlen);
+	std::copy(B.vector, B.vector+B.vlen, B_copy.vector);
+
+	SGVector<float64_t> E=linalg::add(A, B, alpha, beta, true);
+
+	EXPECT_EQ(E.vector, B.vector);
+
+	for (int32_t i=0; i<len; i++)
+		EXPECT_NEAR(alpha*A[i]+beta*B_copy[i], B[i], 1e-15);
+}
+
 #ifdef HAVE_LINALG_LIB
 #ifdef HAVE_EIGEN3
 TEST(AddMatrix, eigen3_backend)

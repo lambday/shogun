@@ -79,11 +79,14 @@ void add(Matrix A, Matrix B, Matrix C, typename Matrix::Scalar alpha=1.0,
  * @param B Second matrix/vector
  * @param alpha scaling parameter for first matrix/vector
  * @param beta scaling parameter for second matrix/vector
+ * @param inplace whether the operation should be performed in-place. If true,
+ * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+ * creates a temporary matrix for the result.
  * @return The result of the operation
  */
 template <Backend backend=linalg_traits<Core>::backend,class Matrix>
 Matrix add(Matrix A, Matrix B, typename Matrix::Scalar alpha=1.0,
-		typename Matrix::Scalar beta=1.0)
+		typename Matrix::Scalar beta=1.0, bool inplace=false)
 {
 	return implementation::add<backend, Matrix>::compute(A, B, alpha, beta);
 }

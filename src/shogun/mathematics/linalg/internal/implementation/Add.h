@@ -57,23 +57,12 @@ namespace implementation
 {
 
 /**
- * @brief Generic class which is specialized for different backends to perform addition
+ * @brief Generic struct add which is specialized for different backends to
+ * perform matrix/vector addition.
  */
 template <enum Backend, class Matrix>
 struct add
 {
-	/** Scalar type */
-	typedef typename Matrix::Scalar T;
-
-	/**
-	 * Performs the operation C = alpha*A + beta*B. Works for both matrices and vectors
-	 * @param A first matrix
-	 * @param B second matrix
-	 * @param C matrix to store the result
-	 * @param alpha constant to be multiplied by the first matrix
-	 * @param beta constant to be multiplied by the second matrix
-	 */
-	static void compute(Matrix A, Matrix B, Matrix C, T alpha, T beta);
 };
 
 /**
@@ -91,9 +80,13 @@ struct add<Backend::NATIVE, Matrix>
 	 * @param B second matrix
 	 * @param alpha constant to be multiplied by the first matrix
 	 * @param beta constant to be multiplied by the second matrix
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The return matrix
 	 */
-	static SGMatrix<T> compute(SGMatrix<T> A, SGMatrix<T> B, T alpha=1, T beta=1)
+	static SGMatrix<T> compute(SGMatrix<T> A, SGMatrix<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.matrix, "Matrix A is not initialized!\n");
 		REQUIRE(B.matrix, "Matrix B is not initialized!\n");
@@ -102,7 +95,12 @@ struct add<Backend::NATIVE, Matrix>
 				"Dimension mismatch! A(%d x %d) vs B(%d x %d)\n",
 				A.num_rows, A.num_cols, B.num_rows, B.num_cols);
 
-		SGMatrix<T> C(A.num_rows, A.num_cols);
+		SGMatrix<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=SGMatrix<T>(A.num_rows, A.num_cols);
+
 		compute(A.matrix, B.matrix, C.matrix, alpha, beta, A.num_rows*A.num_cols);
 
 		return C;
@@ -138,14 +136,23 @@ struct add<Backend::NATIVE, Matrix>
 	 * @param B second vector
 	 * @param alpha constant to be multiplied by the first vector
 	 * @param beta constant to be multiplied by the second vector
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The result vector
 	 */
-	static SGVector<T> compute(SGVector<T> A, SGVector<T> B, T alpha=1, T beta=1)
+	static SGVector<T> compute(SGVector<T> A, SGVector<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.vlen == B.vlen, "Vectors should have same length! "
 				"A(%d) vs B(%d)\n", A.vlen, B.vlen);
 
-		SGVector<T> C(A.vlen);
+		SGVector<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=SGVector<T>(A.vlen);
+
 		compute(A.vector, B.vector, C.vector, alpha, beta, A.vlen);
 
 		return C;
@@ -209,9 +216,13 @@ struct add<Backend::EIGEN3, Matrix>
 	 * @param B second matrix
 	 * @param alpha constant to be multiplied by the first matrix
 	 * @param beta constant to be multiplied by the second matrix
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The return matrix
 	 */
-	static SGMatrix<T> compute(SGMatrix<T> A, SGMatrix<T> B, T alpha=1, T beta=1)
+	static SGMatrix<T> compute(SGMatrix<T> A, SGMatrix<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.matrix, "Matrix A is not initialized!\n");
 		REQUIRE(B.matrix, "Matrix B is not initialized!\n");
@@ -220,7 +231,12 @@ struct add<Backend::EIGEN3, Matrix>
 				"Dimension mismatch! A(%d x %d) vs B(%d x %d)\n",
 				A.num_rows, A.num_cols, B.num_rows, B.num_cols);
 
-		SGMatrix<T> C(A.num_rows, A.num_cols);
+		SGMatrix<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=SGMatrix<T>(A.num_rows, A.num_cols);
+
 		compute(A, B, C, alpha, beta);
 
 		return C;
@@ -250,14 +266,23 @@ struct add<Backend::EIGEN3, Matrix>
 	 * @param B second vector
 	 * @param alpha constant to be multiplied by the first vector
 	 * @param beta constant to be multiplied by the second vector
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The result vector
 	 */
-	static SGVector<T> compute(SGVector<T> A, SGVector<T> B, T alpha=1, T beta=1)
+	static SGVector<T> compute(SGVector<T> A, SGVector<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.vlen == B.vlen, "Vectors should have same length! "
 				"A(%d) vs B(%d)\n", A.vlen, B.vlen);
 
-		SGVector<T> C(A.vlen);
+		SGVector<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=SGVector<T>(A.vlen);
+
 		compute(A, B, C, alpha, beta);
 
 		return C;
@@ -300,9 +325,13 @@ struct add<Backend::VIENNACL, Matrix>
 	 * @param B second matrix
 	 * @param alpha constant to be multiplied by the first matrix
 	 * @param beta constant to be multiplied by the second matrix
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The return matrix
 	 */
-	static CGPUMatrix<T> compute(CGPUMatrix<T> A, CGPUMatrix<T> B, T alpha=1, T beta=1)
+	static CGPUMatrix<T> compute(CGPUMatrix<T> A, CGPUMatrix<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.matrix, "Matrix A is not initialized!\n");
 		REQUIRE(B.matrix, "Matrix B is not initialized!\n");
@@ -311,7 +340,12 @@ struct add<Backend::VIENNACL, Matrix>
 				"Dimension mismatch! A(%d x %d) vs B(%d x %d)\n",
 				A.num_rows, A.num_cols, B.num_rows, B.num_cols);
 
-		CGPUMatrix<T> C(A.num_rows, A.num_cols);
+		CGPUMatrix<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=CGPUMatrix<T>(A.num_rows, A.num_cols);
+
 		compute(A, B, C, alpha, beta);
 
 		return C;
@@ -337,14 +371,23 @@ struct add<Backend::VIENNACL, Matrix>
 	 * @param B second vector
 	 * @param alpha constant to be multiplied by the first vector
 	 * @param beta constant to be multiplied by the second vector
+	 * @param inplace whether the operation should be performed in-place. If true,
+	 * it performs the operation B = alpha*A + beta*B instead. Otherwise,
+	 * creates a temporary matrix for the result.
 	 * @return The result vector
 	 */
-	static CGPUVector<T> compute(CGPUVector<T> A, CGPUVector<T> B, T alpha=1, T beta=1)
+	static CGPUVector<T> compute(CGPUVector<T> A, CGPUVector<T> B, T alpha=1, T beta=1,
+			bool inplace=false)
 	{
 		REQUIRE(A.vlen == B.vlen, "Vectors should have same length! "
 				"A(%d) vs B(%d)\n", A.vlen, B.vlen);
 
-		CGPUVector<T> C(A.vlen);
+		CGPUVector<T> C;
+		if (inplace)
+			C=B;
+		else
+			C=CGPUVector<T>(A.vlen);
+
 		compute(A, B, C, alpha, beta);
 
 		return C;
