@@ -59,7 +59,7 @@
         "MethodCall": "$object->$method($arguments)",
         "StaticCall": "C$type::$method($arguments)",
         "Identifier": "$identifier",
-        "Enum":"$value"
+        "Enum":"$type::$value"
     },
     "ElementAccess": {
         "Vector": "$identifier[$indices]",
