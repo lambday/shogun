@@ -53,9 +53,9 @@ CShiftInvariantKernel::~CShiftInvariantKernel()
 
 bool CShiftInvariantKernel::init(CFeatures* l, CFeatures* r)
 {
-	REQUIRE(m_distance, "The distance instance cannot be NULL!\n");
 	CKernel::init(l,r);
-	m_distance->init(l, r);
+	if (m_distance)
+		m_distance->init(l, r);
 	return init_normalizer();
 }
 

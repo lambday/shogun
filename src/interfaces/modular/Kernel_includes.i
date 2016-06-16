@@ -26,6 +26,7 @@
 #include <shogun/kernel/DistanceKernel.h>
 #include <shogun/kernel/string/FixedDegreeStringKernel.h>
 #include <shogun/kernel/GaussianKernel.h>
+#include <shogun/kernel/ShiftInvariantKernel.h>
 #include <shogun/kernel/DirectorKernel.h>
 #include <shogun/kernel/GaussianShiftKernel.h>
 #include <shogun/kernel/GaussianShortRealKernel.h>
