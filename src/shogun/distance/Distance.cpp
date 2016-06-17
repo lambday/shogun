@@ -77,13 +77,31 @@ CDistance::~CDistance()
 
 bool CDistance::init(CFeatures* l, CFeatures* r)
 {
-	//make sure features were indeed supplied
-	ASSERT(l)
-	ASSERT(r)
+	REQUIRE(l, "Left hand side features cannot be NULL!\n");
+	REQUIRE(r, "Right hand side features cannot be NULL!\n");
 
-	//make sure features are compatible
-	ASSERT(l->get_feature_class()==r->get_feature_class())
-	ASSERT(l->get_feature_type()==r->get_feature_type())
+	REQUIRE(l->get_feature_type()==r->get_feature_type(),
+		"Right hand side of features (%s) must be of same type with left hand side features (%s)\n",
+		r->get_name(), l->get_name());
+
+	if (l->support_compatible_class())
+	{
+		REQUIRE(l->get_feature_class_compatibility(r->get_feature_class()),
+			"Right hand side of features (%s) must be compatible with left hand side features (%s)\n",
+			r->get_name(), l->get_name());
+	}
+	else if (r->support_compatible_class())
+	{
+		REQUIRE(r->get_feature_class_compatibility(l->get_feature_class()),
+			"Right hand side of features (%s) must be compatible with left hand side features (%s)\n",
+			r->get_name(), l->get_name());
+	}
+	else
+	{
+		REQUIRE(l->get_feature_class()==r->get_feature_class(),
+			"Right hand side of features (%s) must be compatible with left hand side features (%s)\n",
+			r->get_name(), l->get_name());
+	}
 
 	//remove references to previous features
 	remove_lhs_and_rhs();
